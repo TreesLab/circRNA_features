@@ -1,0 +1,6 @@
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - perl=5.32.1
+  - maxentscan=0_2004.04.21

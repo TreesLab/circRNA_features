@@ -1,0 +1,580 @@
+
+rule all:
+    input:
+        "results/table_with_all_features/summary.txt",
+        "results/remove_ambiguous/summary.txt",
+        "results/create_one_file_with_all_test_results/circRNAs.all_test_results.xlsx",
+        "results/create_one_file_with_all_glm_results/circRNAs.all_glm_results.tsv",
+        "results/plotting_data/boxplot/",
+        "results/create_table_with_final_features_details/circRNAs.with_final_features.tsv",
+
+
+
+
+include: 'rules/init.smk'
+
+
+
+# ----------------------------------------------------------------------------------- #
+# sample-related
+# ----------------------------------------------------------------------------------- #
+
+include: 'rules/get_junction_reads.smk'
+
+
+# ----------------------------------------------------------------------------------- #
+# circRNAs-related
+# ----------------------------------------------------------------------------------- #
+
+include: 'rules/circRNAs.flanking_regions.smk'
+include: 'rules/donor_acceptor.smk'
+include: 'rules/circRNAs.junction.smk'
+include: 'rules/db_data.smk'
+
+
+
+# ----- create all circRNAs features ----- #
+
+rule create_all_circRNAs_features:
+    input:
+        "results/circRNAs_related/check_donor_acceptor_at_annotated_exon_boundary/circRNAs.check_annotation.tsv",
+        "results/circRNAs_related/check_ambiguous_alignments/circRNAs.checkAA.tsv",
+        "results/circRNAs_related/circAtlas_table/circAtlas_table.human.2.tsv",
+        "results/circRNAs_related/transCirc_table/transCirc_table.tsv",
+        "results/circRNAs_related/get_RCS_summary/RCS.filtered.summary.tsv",
+        "results/circRNAs_related/get_common_RBP/circRNAs.flanking_region.bed.intersect_RBP.coverage.common_RBP",
+        "results/circRNAs_related/predict_miRNA_binding_sites_across_junction/pseudo_reference.50.fa.miranda_results.crossing_junction_miRNAs",
+        "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv"
+
+
+# ----------------------------------------------------------------------------------- #
+# tables with all features
+# ----------------------------------------------------------------------------------- #
+
+rule create_table_with_all_features:
+    input:
+        "results/circRNAs_status_in_RNAseq/{dataset_id}/{species}/{tissue}/circRNAs.junc_reads.count.totalRNA.RPM.status.tsv",
+        check_annotated = "results/circRNAs_related/check_donor_acceptor_at_annotated_exon_boundary/circRNAs.check_annotation.tsv",
+        check_AS_events = "results/circRNAs_related/table_with_AS_check/circRNAs.AS_check.tsv",
+        check_ambiguous = "results/circRNAs_related/check_ambiguous_alignments/circRNAs.checkAA.tsv",
+        circAtlas = "results/circRNAs_related/circAtlas_table/circAtlas_table.human.2.tsv",
+        transCirc = "results/circRNAs_related/transCirc_table/transCirc_table.tsv",
+        RCS_pairs = "results/circRNAs_related/get_RCS_summary/RCS.filtered.summary.tsv",
+        RBP_pairs = "results/circRNAs_related/get_common_RBP/circRNAs.flanking_region.bed.intersect_RBP.coverage.common_RBP",
+        cross_junc_miRNAs = "results/circRNAs_related/predict_miRNA_binding_sites_across_junction/pseudo_reference.50.fa.miranda_results.crossing_junction_miRNAs",
+        cross_junc_RBPs = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.crossing_junction_RBPs.count",
+        cross_junc_RBPs_high_cons = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.high_cons.crossing_junction_RBPs.count",
+        splicing_scores = "results/circRNAs_related/table_with_splicing_scores/circRNAs.MaxEntScan_scores.tsv",
+        conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
+        circFLseq = config["circFLseq"],
+    output:
+        "results/table_with_all_features/{dataset_id}/{species}/{tissue}/circRNAs.with_all_features.tsv"
+    log:
+        "results/logs/create_table_with_all_features/{dataset_id}/{species}/{tissue}/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        treatments = get_treatment_names
+    script:
+        "scripts/create_table_with_all_features.py"
+
+
+rule create_all_tables:
+    input:
+        [
+            "results/table_with_all_features/{}/{}/{}/circRNAs.with_all_features.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+
+
+rule get_summary_of_all_tables:
+    input:
+        [
+            "results/table_with_all_features/{}/{}/{}/circRNAs.with_all_features.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+    output:
+        "results/table_with_all_features/summary.txt"
+    log:
+        "results/logs/get_summary_of_all_tables/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        basename = 'results/table_with_all_features/'
+    script:
+        "scripts/get_summary_of_all_tables.py"
+
+
+
+
+# ----- calculate all the "not depleted" ratio ----- #
+rule calc_not_depleted_ratio:
+    input:
+        "results/remove_ambiguous/{dataset_id}/{species}/{tissue}/circRNAs.with_all_features.remove_AA.totalRNA_2.tsv"
+    output:
+        "results/calc_not_depleted_ratio/{dataset_id}/{species}/{tissue}/circRNAs.depleted_ratio.tsv"
+    log:
+        "results/logs/calc_not_depleted_ratio/{dataset_id}/{species}/{tissue}/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        treatments = get_treatment_names
+    script:
+        "scripts/calc_not_depleted_ratio.py"
+
+
+rule merge_all_not_depleted_ratio:
+    input:
+        files = [
+            "results/calc_not_depleted_ratio/{}/{}/{}/circRNAs.depleted_ratio.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+    output:
+        "results/merge_all_not_depleted_ratio/circRNAs.all_not_depleted_ratio.tsv"
+    log:
+        "results/logs/merge_all_not_depleted_ratio/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        groups = ALL_SAMPLE_GROUPS,
+        sample_id_mapper = SAMPLE_ID_MAPPER
+    script:
+        "scripts/merge_all_not_depleted_ratio.py"
+
+
+# ----- create table with all circRNA-related features ----- #
+rule create_table_with_all_circRNA_related_features:
+    input:
+        circRNAs = config["circRNAs"],
+        check_annotated = "results/circRNAs_related/check_donor_acceptor_at_annotated_exon_boundary/circRNAs.check_annotation.tsv",
+        check_AS_events = "results/circRNAs_related/table_with_AS_check/circRNAs.AS_check.tsv",
+        check_ambiguous = "results/circRNAs_related/check_ambiguous_alignments/circRNAs.checkAA.tsv",
+        circAtlas = "results/circRNAs_related/circAtlas_table/circAtlas_table.human.2.tsv",
+        transCirc = "results/circRNAs_related/transCirc_table/transCirc_table.tsv",
+        RCS_pairs = "results/circRNAs_related/get_RCS_summary/RCS.filtered.summary.tsv",
+        RBP_pairs = "results/circRNAs_related/get_common_RBP/circRNAs.flanking_region.bed.intersect_RBP.coverage.common_RBP",
+        cross_junc_miRNAs = "results/circRNAs_related/predict_miRNA_binding_sites_across_junction/pseudo_reference.50.fa.miranda_results.crossing_junction_miRNAs",
+        cross_junc_RBPs = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.crossing_junction_RBPs.count",
+        cross_junc_RBPs_high_cons = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.high_cons.crossing_junction_RBPs.count",
+        splicing_scores = "results/circRNAs_related/table_with_splicing_scores/circRNAs.MaxEntScan_scores.tsv",
+        conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
+        circFLseq = config["circFLseq"],
+        not_depleted_ratio = "results/merge_all_not_depleted_ratio/circRNAs.all_not_depleted_ratio.tsv"
+    output:
+        "results/circRNAs_related/table_with_all_circRNA_related_features/circRNAs.with_all_circRNA_related_features.tsv"
+    log:
+        "results/logs/create_table_with_all_circRNA_related_features/log"
+    conda:
+        "envs/python3.yaml"
+    script:
+        "scripts/create_table_with_all_circRNA_related_features.py"
+
+
+rule collect_all_totalRNA_read_count_data:
+    input:
+        config["circRNAs"],
+        [
+            "results/remove_ambiguous/{}/{}/{}/circRNAs.with_all_features.remove_AA.totalRNA_2.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+    output:
+        "results/collect_all_totalRNA_read_count_data/circRNAs.totalRNA_read_count.tsv"
+    log:
+        "results/logs/collect_all_totalRNA_read_count_data/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        groups = ALL_SAMPLE_GROUPS,
+        sample_id_mapper = SAMPLE_ID_MAPPER
+    script:
+        "scripts/collect_all_totalRNA_read_count_data.py"
+
+
+
+rule remove_ambiguous:
+    input:
+        "results/table_with_all_features/{dataset_id}/{species}/{tissue}/circRNAs.with_all_features.tsv"
+    output:
+        "results/remove_ambiguous/{dataset_id}/{species}/{tissue}/circRNAs.with_all_features.remove_AA.totalRNA_{totalRNA_threshold}.tsv"
+    log:
+        "results/logs/remove_ambiguous/{dataset_id}/{species}/{tissue}/totalRNA_{totalRNA_threshold}.log"
+    conda:
+        "envs/python3.yaml"
+    wildcard_constraints:
+        totalRNA_threshold = r"\d+"
+    script:
+        "scripts/remove_ambiguous.py"
+
+rule remove_ambiguous_for_all_tables:
+    input:
+        expand(
+            [
+                "results/remove_ambiguous/{}/{}/{}/circRNAs.with_all_features.remove_AA.totalRNA_{{totalRNA_threshold}}.tsv".format(dataset_id, species, tissue)
+                for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+            ],
+            totalRNA_threshold=[1, 2, 3]
+        )
+
+
+rule get_summary_of_all_tables_without_ambiguous:
+    input:
+        expand(
+            [
+                "results/remove_ambiguous/{}/{}/{}/circRNAs.with_all_features.remove_AA.totalRNA_{{totalRNA_threshold}}.tsv".format(dataset_id, species, tissue)
+                for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+            ],
+            totalRNA_threshold=[1, 2, 3]
+        )
+    output:
+        "results/remove_ambiguous/summary.txt"
+    log:
+        "results/logs/get_summary_of_all_tables_without_ambiguous/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        basename = 'results/remove_ambiguous/'
+    script:
+        "scripts/get_summary_of_all_tables.py"
+
+
+# ----------------------------------------------------------------------------------- #
+# Statistic tests
+# ----------------------------------------------------------------------------------- #
+
+rule create_table_with_features_of_boolean_type:
+    input:
+        "results/remove_ambiguous/{dataset_id}/{species}/{tissue}/circRNAs.with_all_features.remove_AA.totalRNA_2.tsv"
+    output:
+        "results/table_with_features_of_boolean_type/{dataset_id}/{species}/{tissue}/circRNAs.with_features_of_boolean_type.tsv"
+    log:
+        "results/logs/create_table_with_features_of_boolean_type/{dataset_id}/{species}/{tissue}/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        treatments = get_treatment_names
+    script:
+        "scripts/create_table_with_features_of_boolean_type.py"
+
+
+rule create_table_with_features_of_scoring_type:
+    input:
+        "results/remove_ambiguous/{dataset_id}/{species}/{tissue}/circRNAs.with_all_features.remove_AA.totalRNA_2.tsv"
+    output:
+        "results/table_with_features_of_scoring_type/{dataset_id}/{species}/{tissue}/circRNAs.with_features_of_scoring_type.tsv"
+    log:
+        "results/logs/create_table_with_features_of_scoring_type/{dataset_id}/{species}/{tissue}/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        treatments = get_treatment_names
+    script:
+        "scripts/create_table_with_features_of_scoring_type.py"
+
+
+# ----- fisher ----- #
+rule create_two_way_tables:
+    input:
+        "results/table_with_features_of_boolean_type/{dataset_id}/{species}/{tissue}/circRNAs.with_features_of_boolean_type.tsv"
+    output:
+        not_detected_table = "results/two_way_tables/{dataset_id}/{species}/{tissue}/circRNAs.two_way_table.not_detected.tsv",
+        not_depleted_table = "results/two_way_tables/{dataset_id}/{species}/{tissue}/circRNAs.two_way_table.not_depleted.tsv"
+    log:
+        "results/logs/create_two_way_tables/{dataset_id}/{species}/{tissue}/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        treatments = get_treatment_names
+    script:
+        "scripts/create_two_way_tables.py"
+
+
+rule calc_fisher_exact_test:
+    input:
+        "results/two_way_tables/{dataset_id}/{species}/{tissue}/circRNAs.two_way_table.{type}.tsv"
+    output:
+        "results/calc_fisher_exact_test/{dataset_id}/{species}/{tissue}/circRNAs.two_way_table.{type}.fisher.tsv"
+    log:
+        "results/logs/calc_fisher_exact_test/{dataset_id}/{species}/{tissue}/{type}.log"
+    conda:
+        "envs/python3.yaml"
+    script:
+        "scripts/calc_fisher_exact_test.py"
+
+
+rule calc_all_fisher_exact_test:
+    input:
+        expand(
+            [
+                "results/calc_fisher_exact_test/{}/{}/{}/circRNAs.two_way_table.{{type}}.fisher.tsv".format(dataset_id, species, tissue)
+                for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+            ],
+            type=['not_detected', 'not_depleted']
+        )
+
+
+# ----- rank sum ----- #
+
+rule calc_Wilcoxon_rank_sum_test:
+    input:
+        "results/table_with_features_of_scoring_type/{dataset_id}/{species}/{tissue}/circRNAs.with_features_of_scoring_type.tsv"
+    output:
+        not_detected_table = "results/calc_Wilcoxon_rank_sum_test/{dataset_id}/{species}/{tissue}/circRNAs.ranksums.not_detected.tsv",
+        not_depleted_table = "results/calc_Wilcoxon_rank_sum_test/{dataset_id}/{species}/{tissue}/circRNAs.ranksums.not_depleted.tsv"
+    log:
+        "results/logs/calc_Wilcoxon_rank_sum_test/{dataset_id}/{species}/{tissue}/log"
+    conda:
+        "envs/python3.yaml"
+    script:
+        "scripts/calc_Wilcoxon_rank_sum_test.py"
+
+
+# ----- t test ----- #
+
+rule calc_t_test:
+    input:
+        "results/table_with_features_of_scoring_type/{dataset_id}/{species}/{tissue}/circRNAs.with_features_of_scoring_type.tsv"
+    output:
+        not_detected_table = "results/calc_t_test/{dataset_id}/{species}/{tissue}/circRNAs.ttest.not_detected.tsv",
+        not_depleted_table = "results/calc_t_test/{dataset_id}/{species}/{tissue}/circRNAs.ttest.not_depleted.tsv"
+    log:
+        "results/logs/calc_t_test/{dataset_id}/{species}/{tissue}/log"
+    conda:
+        "envs/python3.yaml"
+    script:
+        "scripts/calc_t_test.py"
+
+
+# ----- Merge all test results in one file ----- #
+
+rule merge_all_test_results_of_boolean_features:
+    input:
+        [
+            "results/calc_fisher_exact_test/{}/{}/{}/circRNAs.two_way_table.not_depleted.fisher.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+    output:
+        "results/all_test_results_of_boolean_features/circRNAs.all_test_results_of_boolean_features.tsv"
+    log:
+        "results/logs/merge_all_test_results_of_boolean_features/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        sample_id_mapper = SAMPLE_ID_MAPPER
+    script:
+        "scripts/merge_all_test_results_of_boolean_features.py"
+
+rule BH_correction_for_boolean_features:
+    input:
+        "results/all_test_results_of_boolean_features/circRNAs.all_test_results_of_boolean_features.tsv"
+    output:
+        "results/all_test_results_of_boolean_features/circRNAs.all_test_results_of_boolean_features.BH_correction.tsv"
+    log:
+        "results/logs/BH_correction_for_boolean_features/log"
+    conda:
+        "envs/python3.yaml"
+    script:
+        "scripts/BH_correction_for_boolean_features.py"
+
+rule merge_all_test_results_of_scoring_features:
+    input:
+        ranksum_results = [
+            "results/calc_Wilcoxon_rank_sum_test/{}/{}/{}/circRNAs.ranksums.not_depleted.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ],
+        t_test_results = [
+            "results/calc_t_test/{}/{}/{}/circRNAs.ttest.not_depleted.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+    output:
+        "results/all_test_results_of_scoring_features/circRNAs.all_test_results_of_scoring_features.tsv"
+    log:
+        "results/logs/merge_all_test_results_of_scoring_features/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        sample_id_mapper = SAMPLE_ID_MAPPER
+    script:
+        "scripts/merge_all_test_results_of_scoring_features.py"
+
+rule BH_correction_for_scoring_features:
+    input:
+        "results/all_test_results_of_scoring_features/circRNAs.all_test_results_of_scoring_features.tsv"
+    output:
+        "results/all_test_results_of_scoring_features/circRNAs.all_test_results_of_scoring_features.BH_correction.tsv"
+    log:
+        "results/logs/BH_correction_for_scoring_features/log"
+    conda:
+        "envs/python3.yaml"
+    script:
+        "scripts/BH_correction_for_scoring_features.py"
+
+rule create_one_file_with_all_test_results:
+    input:
+        "results/all_test_results_of_boolean_features/circRNAs.all_test_results_of_boolean_features.BH_correction.tsv",
+        "results/all_test_results_of_scoring_features/circRNAs.all_test_results_of_scoring_features.BH_correction.tsv"
+    output:
+        "results/create_one_file_with_all_test_results/circRNAs.all_test_results.xlsx"
+    log:
+        "results/logs/create_one_file_with_all_test_results/log"
+    conda:
+        "envs/python3.yaml"
+    script:
+        "scripts/create_one_file_with_all_test_results.py"
+
+
+# ----- Generalizes Linear Model ----- #
+
+rule create_table_with_features_for_glm:
+    input:
+        "results/table_with_features_of_boolean_type/{dataset_id}/{species}/{tissue}/circRNAs.with_features_of_boolean_type.tsv",
+        "results/table_with_features_of_scoring_type/{dataset_id}/{species}/{tissue}/circRNAs.with_features_of_scoring_type.tsv"
+    output:
+        "results/table_with_features_for_glm/{dataset_id}/{species}/{tissue}/circRNAs.features_for_glm.tsv"
+    log:
+        "results/logs/create_table_with_features_for_glm/{dataset_id}/{species}/{tissue}/log"
+    conda:
+        "envs/python3.yaml"
+    script:
+        "scripts/create_table_with_features_for_glm.py"
+
+
+rule create_all_glm_tables:
+    input:
+        [
+            "results/table_with_features_for_glm/{}/{}/{}/circRNAs.features_for_glm.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+
+
+rule calculate_the_glm:
+    input:
+        "results/table_with_features_for_glm/{dataset_id}/{species}/{tissue}/circRNAs.features_for_glm.tsv"
+    output:
+        "results/calculate_the_glm/{dataset_id}/{species}/{tissue}/circRNAs.features_for_glm.glm_results.tsv"
+    log:
+        "results/logs/calculate_the_glm/{dataset_id}/{species}/{tissue}/log"
+    conda:
+        "envs/python3.yaml"
+    script:
+        "scripts/calculate_the_glm.py"
+
+
+rule calculate_all_glm:
+    input:
+        [
+            "results/calculate_the_glm/{}/{}/{}/circRNAs.features_for_glm.glm_results.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+
+
+rule create_one_file_with_all_glm_results:
+    input:
+        [
+            "results/calculate_the_glm/{}/{}/{}/circRNAs.features_for_glm.glm_results.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+    output:
+        "results/create_one_file_with_all_glm_results/circRNAs.all_glm_results.tsv",
+        # "results/create_one_file_with_all_glm_results/circRNAs.all_glm_results.xlsx"
+    log:
+        "results/logs/create_one_file_with_all_glm_results/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        sample_id_mapper = SAMPLE_ID_MAPPER
+    script:
+        "scripts/create_one_file_with_all_glm_results.py"
+
+
+
+# ----- Plotting ----- #
+
+rule plotting_data_boxplot:
+    input:
+        [
+            "results/table_with_features_of_scoring_type/{}/{}/{}/circRNAs.with_features_of_scoring_type.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+    output:
+        directory("results/plotting_data/boxplot/")
+    log:
+        "results/logs/plotting_data_boxplot/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        groups = ALL_SAMPLE_GROUPS,
+        sample_id_mapper = SAMPLE_ID_MAPPER
+    script:
+        "scripts/plotting_data_boxplot.py"
+
+
+
+# ----------------------------------------------------------------------------------- #
+# Final outputs
+# ----------------------------------------------------------------------------------- #
+
+rule create_table_with_sample_features_detail:
+    input:
+        rm_amb = "results/remove_ambiguous/{dataset_id}/{species}/{tissue}/circRNAs.with_all_features.remove_AA.totalRNA_2.tsv",
+        not_depleted = "results/calc_not_depleted_ratio/{dataset_id}/{species}/{tissue}/circRNAs.depleted_ratio.tsv",
+        boolean = "results/table_with_features_of_boolean_type/{dataset_id}/{species}/{tissue}/circRNAs.with_features_of_boolean_type.tsv",
+        scoring = "results/table_with_features_of_scoring_type/{dataset_id}/{species}/{tissue}/circRNAs.with_features_of_scoring_type.tsv"
+    output:
+        "results/create_table_with_sample_features_detail/{dataset_id}/{species}/{tissue}/circRNAs.with_features.remove_AA.totalRNA_2.tsv"
+    log:
+        "results/logs/create_table_with_sample_features_detail/{dataset_id}/{species}/{tissue}/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        treatments = get_treatment_names
+    script:
+        "scripts/create_table_with_sample_features_detail.py"
+
+
+rule create_all_table_with_sample_features_detail:
+    input:
+        [
+            "results/create_table_with_sample_features_detail/{}/{}/{}/circRNAs.with_features.remove_AA.totalRNA_2.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+
+
+rule create_table_with_final_features_details:
+    input:
+        circRNAs = config["circRNAs"],
+        check_annotated = "results/circRNAs_related/check_donor_acceptor_at_annotated_exon_boundary/circRNAs.check_annotation.tsv",
+        check_AS_events = "results/circRNAs_related/table_with_AS_check/circRNAs.AS_check.tsv",
+        check_ambiguous = "results/circRNAs_related/check_ambiguous_alignments/circRNAs.checkAA.tsv",
+        circAtlas = "results/circRNAs_related/circAtlas_table/circAtlas_table.human.2.tsv",
+        transCirc = "results/circRNAs_related/transCirc_table/transCirc_table.tsv",
+        RCS_pairs = "results/circRNAs_related/get_RCS_summary/RCS.filtered.summary.tsv",
+        RBP_pairs = "results/circRNAs_related/get_common_RBP/circRNAs.flanking_region.bed.intersect_RBP.coverage.common_RBP",
+        cross_junc_miRNAs = "results/circRNAs_related/predict_miRNA_binding_sites_across_junction/pseudo_reference.50.fa.miranda_results.crossing_junction_miRNAs",
+        cross_junc_RBPs = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.crossing_junction_RBPs.count",
+        cross_junc_RBPs_high_cons = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.high_cons.crossing_junction_RBPs.count",
+        splicing_scores = "results/circRNAs_related/table_with_splicing_scores/circRNAs.MaxEntScan_scores.tsv",
+        conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
+        circFLseq = config["circFLseq"],
+        sample_features = [
+            "results/create_table_with_sample_features_detail/{}/{}/{}/circRNAs.with_features.remove_AA.totalRNA_2.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+    output:
+        "results/create_table_with_final_features_details/circRNAs.with_final_features.tsv"
+    log:
+        "results/logs/create_table_with_final_features_details/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        groups = ALL_SAMPLE_GROUPS,
+        sample_id_mapper = SAMPLE_ID_MAPPER
+    script:
+        "scripts/create_table_with_final_features_details.py"
+
+
+
+
+
+
+
+

@@ -1,0 +1,10 @@
+channels:
+  - bioconda
+  - conda-forge
+dependencies:
+  - python=3.9
+  - selenium=3.141.0
+  - geckodriver=0.29.1
+  - firefox=93.0
+  - pip:
+    - requests==2.28.1

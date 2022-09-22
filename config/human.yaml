@@ -1,0 +1,23 @@
+species: "human"
+genome: "resources/references/human/ensembl_100/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+annotation: "resources/references/human/ensembl_100/Homo_sapiens.GRCh38.100.chr.gtf"
+
+ENCORI_RBP: "resources/references/human/ENCORI/ENCORI_RBP_binding_sites.hg38.no_chr.all.bed"
+
+phyloP: "resources/references/human/hg38.phyloP100way.bw"
+phastCons: "resources/references/human/hg38.phastCons100way.bw"
+
+pc_ref: "resources/references/human/ensembl_100/Homo_sapiens.GRCh38.cdna.all.fa"
+lncRNA_ref: "resources/references/human/ensembl_100/Homo_sapiens.GRCh38.ncrna.fa"
+
+mir_ref: "resources/references/human/miRBase_v22/mature.hsa.fa"
+
+circAtlas: "resources/references/human/circAtlas_table/circAtlas_table.human.tsv"
+transCirc: "resources/references/human/transCirc_table/transCirc_2021_3_17.2.tsv"
+circRNAs: "resources/circAtlas.circRNAs.human.tsv"
+
+circFLseq: "resources/references/human/circFLseq_table/circRNA_circFL_table.tsv.BSJ.hg38.bed.tsv.paired.same_chr_strand.tsv.mapping"
+
+samples: "config/sample_list.selected.tsv"
+
+sample_id_mapping: "config/sample_id_mapping.tsv"
