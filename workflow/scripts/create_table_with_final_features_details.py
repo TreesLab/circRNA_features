@@ -274,6 +274,16 @@ evidence_num_plus_df = pd.concat(
     'evidence_num_plus'
 ]]
 
+# curated_circRNAs_db
+curated_circRNAs_db = pd.read_csv(
+    snakemake.input.curated_circRNAs_db,
+    sep='\t',
+    dtype='object'
+)[[
+    'event_id',
+    'CircR2diseaseV2(well_confirmed)',
+    'RT-independent'
+]]
 
 
 # sample features
@@ -324,9 +334,8 @@ merged_df = append_all_features(
     splicing_scores_df,
     evidence_num_plus_df,
     evidences_df,
-    sample_features_df
+    curated_circRNAs_db,
 )
-
 
 merged_df = merged_df[merged_df['has_ambiguity'] == 0].drop('has_ambiguity', axis=1)
 
@@ -366,6 +375,8 @@ merged_df = merged_df[[
     'has_common_RBPs_on_flanking_1k',
     'evidence_num_plus',
     'evidences_score',
+    'CircR2diseaseV2(well_confirmed)',
+    'RT-independent',
 ]].rename(
     {
         'algorithms > 1': 'Detected by multiple tools (algorithms >=2) (Yes: 1; No: 0)',
@@ -404,6 +415,12 @@ merged_df = merged_df[[
         'evidences_score': 'evidences_score (translational potential)',
     },
     axis=1
+)
+
+
+merged_df = append_all_features(
+    merged_df,
+    sample_features_df
 )
 
 
