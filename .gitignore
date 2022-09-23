@@ -1,5 +1,4 @@
 .snakemake/*
-resources/*
 results/*
 *DS_Store
 *.pyc

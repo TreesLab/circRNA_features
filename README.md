@@ -6,13 +6,12 @@ mamba activate snakemake
 
 # Clone this repo
 git clone https://github.com/TreesLab/circRNA_features.git
-cd circRNA_features
 ```
 
 ### Prepare the reference files
 ```
-wget https://treeslab1.genomics.sinica.edu.tw/circRNA_features/resources.tar.gz
-tar zxvf resources.tar.gz
+cd circRNA_features/resources/
+tar zxvf references.tar.gz
 ```
 
 
