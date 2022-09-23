@@ -11,10 +11,9 @@ cd circRNA_features
 
 ### Prepare the reference files
 ```
-wget treeslab1.genomics.sinica.edu.tw/circRNA_features/resources.tar.gz
+wget https://treeslab1.genomics.sinica.edu.tw/circRNA_features/resources.tar.gz
 tar zxvf resources.tar.gz
 ```
-Please prepare the reference files described in "resources/README.md".
 
 
 ## Run pipeline
