@@ -1,16 +1,19 @@
 ## Preparation
 ```
+# Install "snakemake"
 mamba create -n snakemake python snakemake
 mamba activate snakemake
 
+# Clone this repo
 git clone https://github.com/TreesLab/circRNA_features.git
 cd circRNA_features
-
-wget treeslab1.genomics.sinica.edu.tw/circRNA_features/resources.tar.gz
-tar zxvf resources.tar.gz
 ```
 
 ### Prepare the reference files
+```
+wget treeslab1.genomics.sinica.edu.tw/circRNA_features/resources.tar.gz
+tar zxvf resources.tar.gz
+```
 Please prepare the reference files described in "resources/README.md".
 
 
