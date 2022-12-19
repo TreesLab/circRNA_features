@@ -18,6 +18,7 @@ transCirc: "resources/references/human/transCirc_table/transCirc_2021_3_17.2.tsv
 
 circFLseq: "resources/references/human/circFLseq_table/circRNA_circFL_table.tsv.BSJ.hg38.bed.tsv.paired.same_chr_strand.tsv.mapping"
 
+circRNAs_db: "resources/references/human/circAtlas.circRNAs.databases.num_db.tsv"
 curated_circRNAs_db: "resources/references/human/circAtlas.circRNAs.well_confirmed.txt"
 
 samples: "config/sample_list.selected.tsv"

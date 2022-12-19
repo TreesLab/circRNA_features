@@ -66,6 +66,7 @@ scoring_features = [
     'evidence_num_plus',
     'evidences_num',
     'evidences_score',
+    'num_db'
 ]
 
 
@@ -295,6 +296,7 @@ boxplot('WMM(donor)', y_ticks=np.linspace(-3, 15, 4).tolist())
 boxplot('evidence_num_plus', y_ticks=list(range(0, 9, 2)))
 boxplot('evidences_num', y_ticks=list(range(0, 7, 2)))
 boxplot('evidences_score', y_ticks=np.linspace(0, 5, 3).tolist(), y_ticks_labels=['0', '2.5', '5'])
+boxplot('num_db', y_ticks=list(range(0, 9, 2)))
 
 
 

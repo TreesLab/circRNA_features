@@ -67,6 +67,7 @@ rule create_table_with_all_features:
         splicing_scores = "results/circRNAs_related/table_with_splicing_scores/circRNAs.MaxEntScan_scores.tsv",
         conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
         circFLseq = config["circFLseq"],
+        circRNAs_db = config["circRNAs_db"],
     output:
         "results/table_with_all_features/{dataset_id}/{species}/{tissue}/circRNAs.with_all_features.tsv"
     log:
@@ -508,6 +509,24 @@ rule plotting_data_boxplot:
         "scripts/plotting_data_boxplot.py"
 
 
+rule plotting_data_boxplot_2:
+    input:
+        [
+            "results/table_with_features_of_scoring_type/{}/{}/{}/circRNAs.with_features_of_scoring_type.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+    output:
+        directory("results/plotting_data/boxplot_2/")
+    log:
+        "results/logs/plotting_data_boxplot_2/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        groups = ALL_SAMPLE_GROUPS,
+        sample_id_mapper = SAMPLE_ID_MAPPER
+    script:
+        "scripts/plotting_data_boxplot_2.py"
+
 
 # ----------------------------------------------------------------------------------- #
 # Final outputs
@@ -555,6 +574,8 @@ rule create_table_with_final_features_details:
         splicing_scores = "results/circRNAs_related/table_with_splicing_scores/circRNAs.MaxEntScan_scores.tsv",
         conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
         circFLseq = config["circFLseq"],
+        circRNAs_db = config["circRNAs_db"],
+        curated_circRNAs_db = config["curated_circRNAs_db"],
         sample_features = [
             "results/create_table_with_sample_features_detail/{}/{}/{}/circRNAs.with_features.remove_AA.totalRNA_2.tsv".format(dataset_id, species, tissue)
             for dataset_id, species, tissue in ALL_SAMPLE_GROUPS

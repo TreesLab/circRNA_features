@@ -133,6 +133,12 @@ conservation_scores_df = df[[
 ]].fillna('0').astype(float)
 
 
+# circRNAs databases: num_db
+
+num_db_df = df[[
+    'num_db'
+]]
+
 scoring_table_df = pd.concat(
     [
         base_df,
@@ -145,7 +151,8 @@ scoring_table_df = pd.concat(
         flanking_regions_df,
         flanking_regions_df_2,
         splicing_scores_df,
-        conservation_scores_df
+        conservation_scores_df,
+        num_db_df
     ],
     axis=1
 )

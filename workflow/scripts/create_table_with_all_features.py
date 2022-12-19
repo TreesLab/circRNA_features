@@ -164,6 +164,13 @@ circFLseq_df = pd.read_csv(
 ).drop('circFLseq_ID', axis=1).drop_duplicates()
 
 
+# circRNAs databases
+db_df = pd.read_csv(
+    snakemake.input.circRNAs_db,
+    sep='\t',
+    dtype='object'
+)
+
 # merge all features
 circ_df = append_all_features(
     circ_df,
@@ -180,6 +187,7 @@ circ_df = append_all_features(
     splicing_scores_df,
     conservation_scores_df,
     circFLseq_df,
+    db_df
 ).fillna('0')
 
 # output

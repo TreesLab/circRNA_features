@@ -286,6 +286,14 @@ curated_circRNAs_db = pd.read_csv(
 ]]
 
 
+# circRNAs databases
+db_df = pd.read_csv(
+    snakemake.input.circRNAs_db,
+    sep='\t',
+    dtype='object'
+)
+
+
 # sample features
 sample_dfs = [
     pd.read_csv(file_, sep='\t', dtype='object', usecols=[0, 1, 2, 3]).set_index('event_id')
@@ -335,6 +343,7 @@ merged_df = append_all_features(
     evidence_num_plus_df,
     evidences_df,
     curated_circRNAs_db,
+    db_df
 )
 
 merged_df = merged_df[merged_df['has_ambiguity'] == 0].drop('has_ambiguity', axis=1)
@@ -377,6 +386,15 @@ merged_df = merged_df[[
     'evidences_score',
     'CircR2diseaseV2(well_confirmed)',
     'RT-independent',
+    'CIRCpedia_v2',
+    'CSCD_v2',
+    'CircRic',
+    'MiOncoCirc',
+    'TSCD',
+    'circBase',
+    'circRNADb',
+    'exoRBase',
+    'num_db',
 ]].rename(
     {
         'algorithms > 1': 'Detected by multiple tools (algorithms >=2) (Yes: 1; No: 0)',
