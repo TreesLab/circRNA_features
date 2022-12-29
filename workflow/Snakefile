@@ -64,6 +64,10 @@ rule create_table_with_all_features:
         cross_junc_miRNAs = "results/circRNAs_related/predict_miRNA_binding_sites_across_junction/pseudo_reference.50.fa.miranda_results.crossing_junction_miRNAs",
         cross_junc_RBPs = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.crossing_junction_RBPs.count",
         cross_junc_RBPs_high_cons = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.high_cons.crossing_junction_RBPs.count",
+        cross_junc_G_quadruplex = [
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_10.txt",
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_5.txt",
+        ],
         splicing_scores = "results/circRNAs_related/table_with_splicing_scores/circRNAs.MaxEntScan_scores.tsv",
         conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
         circFLseq = config["circFLseq"],
@@ -157,6 +161,10 @@ rule create_table_with_all_circRNA_related_features:
         cross_junc_miRNAs = "results/circRNAs_related/predict_miRNA_binding_sites_across_junction/pseudo_reference.50.fa.miranda_results.crossing_junction_miRNAs",
         cross_junc_RBPs = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.crossing_junction_RBPs.count",
         cross_junc_RBPs_high_cons = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.high_cons.crossing_junction_RBPs.count",
+        cross_junc_G_quadruplex = [
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_10.txt",
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_5.txt",
+        ],
         splicing_scores = "results/circRNAs_related/table_with_splicing_scores/circRNAs.MaxEntScan_scores.tsv",
         conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
         circFLseq = config["circFLseq"],
@@ -571,6 +579,10 @@ rule create_table_with_final_features_details:
         cross_junc_miRNAs = "results/circRNAs_related/predict_miRNA_binding_sites_across_junction/pseudo_reference.50.fa.miranda_results.crossing_junction_miRNAs",
         cross_junc_RBPs = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.crossing_junction_RBPs.count",
         cross_junc_RBPs_high_cons = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.high_cons.crossing_junction_RBPs.count",
+        cross_junc_G_quadruplex = [
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_10.txt",
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_5.txt",
+        ],
         splicing_scores = "results/circRNAs_related/table_with_splicing_scores/circRNAs.MaxEntScan_scores.tsv",
         conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
         circFLseq = config["circFLseq"],

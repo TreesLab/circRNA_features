@@ -236,4 +236,33 @@ rule get_crossing_junction_RBP_high_cons:
         "../scripts/get_crossing_junction_RBP.py"
 
 
+# ----- check if there are G-quadruplex structure across the circRNA junction ----- #
+
+rule predict_G_quadruplex_structure_across_junction:
+    input:
+        "results/pseudo_reference/pseudo_reference.50.fa"
+    output:
+        "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.txt"
+    log:
+        "results/logs/predict_G_quadruplex_structure_across_junction/log"
+    conda:
+        "../envs/qgrs.yaml"
+    script:
+        "../scripts/predict_G_quadruplex_structure_across_junction.py"
+
+
+rule get_cross_junction_G_quadruplex:
+    input:
+        "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.txt"
+    output:
+        "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_{dist}.txt"
+    log:
+        "results/logs/get_cross_junction_G_quadruplex/{dist}.log"
+    conda:
+        "../envs/python3.yaml"
+    params:
+        L = 50
+    script:
+        "../scripts/get_cross_junction_G_quadruplex.py"
+
 

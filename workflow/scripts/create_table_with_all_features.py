@@ -153,6 +153,34 @@ cross_junc_RBPs_high_cons_df = pd.read_csv(
 ).astype('object')
 
 
+# circRNA junction: G-quadruplex structure across circRNA junction
+cross_junc_G_quadruplex_10_df = pd.read_csv(
+    snakemake.input.cross_junc_G_quadruplex[0],
+    sep='\t',
+    dtype='object',
+    usecols=[0, 7]
+).rename(
+    {
+        'circ_id': 'event_id',
+        'GS': 'G score(d=10)'
+    },
+    axis=1
+)
+
+cross_junc_G_quadruplex_5_df = pd.read_csv(
+    snakemake.input.cross_junc_G_quadruplex[1],
+    sep='\t',
+    dtype='object',
+    usecols=[0, 7]
+).rename(
+    {
+        'circ_id': 'event_id',
+        'GS': 'G score(d=5)'
+    },
+    axis=1
+)
+
+
 # circFL-seq table
 circFLseq_df = pd.read_csv(
     snakemake.input.circFLseq,
@@ -184,6 +212,8 @@ circ_df = append_all_features(
     cross_junc_miRNAs_df,
     cross_junc_RBPs_df,
     cross_junc_RBPs_high_cons_df,
+    cross_junc_G_quadruplex_10_df,
+    cross_junc_G_quadruplex_5_df,
     splicing_scores_df,
     conservation_scores_df,
     circFLseq_df,

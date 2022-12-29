@@ -160,6 +160,26 @@ the_others_df = df[[
 ]]
 
 
+# G quadruplex structure across circRNA junction
+has_G_quadruplex_10_df = df[[
+    'G score(d=10)'
+]].astype(int).assign(
+    has_G_quadruplex_across_junction_10=lambda sdf: (sdf['G score(d=10)'] > 0).apply(int)
+).drop(
+    'G score(d=10)',
+    axis=1
+)
+
+has_G_quadruplex_5_df = df[[
+    'G score(d=5)'
+]].astype(int).assign(
+    has_G_quadruplex_across_junction_5=lambda sdf: (sdf['G score(d=5)'] > 0).apply(int)
+).drop(
+    'G score(d=5)',
+    axis=1
+)
+
+
 logging.info('merging all feature tables')
 
 bool_table_df = pd.concat(
@@ -172,7 +192,9 @@ bool_table_df = pd.concat(
         MCS_df,
         algorithms_df,
         evidence_num_df,
-        the_others_df
+        the_others_df,
+        has_G_quadruplex_10_df,
+        has_G_quadruplex_5_df
     ],
     axis=1
 )

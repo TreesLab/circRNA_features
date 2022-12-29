@@ -260,6 +260,38 @@ cross_junc_RBPs_high_cons_df = pd.read_csv(
 ]].fillna(0)
 
 
+# circRNA junction: G-quadruplex structure across circRNA junction
+cross_junc_G_quadruplex_10_df = pd.read_csv(
+    snakemake.input.cross_junc_G_quadruplex[0],
+    sep='\t',
+    dtype='object',
+    usecols=[0, 7]
+).rename(
+    {
+        'circ_id': 'event_id',
+        'GS': 'G score(d=10)'
+    },
+    axis=1
+).merge(event_id_df, on='event_id', how='right').set_index(
+    'event_id'
+).fillna(0)
+
+cross_junc_G_quadruplex_5_df = pd.read_csv(
+    snakemake.input.cross_junc_G_quadruplex[1],
+    sep='\t',
+    dtype='object',
+    usecols=[0, 7]
+).rename(
+    {
+        'circ_id': 'event_id',
+        'GS': 'G score(d=5)'
+    },
+    axis=1
+).merge(event_id_df, on='event_id', how='right').set_index(
+    'event_id'
+).fillna(0)
+
+
 # evidence_num + "miRNA/RBP cross junction" 
 evidence_num_plus_df = pd.concat(
     [
@@ -343,7 +375,9 @@ merged_df = append_all_features(
     evidence_num_plus_df,
     evidences_df,
     curated_circRNAs_db,
-    db_df
+    db_df,
+    cross_junc_G_quadruplex_10_df,
+    cross_junc_G_quadruplex_5_df
 )
 
 merged_df = merged_df[merged_df['has_ambiguity'] == 0].drop('has_ambiguity', axis=1)
@@ -395,6 +429,8 @@ merged_df = merged_df[[
     'circRNADb',
     'exoRBase',
     'num_db',
+    'G score(d=10)',
+    'G score(d=5)',
 ]].rename(
     {
         'algorithms > 1': 'Detected by multiple tools (algorithms >=2) (Yes: 1; No: 0)',
