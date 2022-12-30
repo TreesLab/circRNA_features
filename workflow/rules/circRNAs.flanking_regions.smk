@@ -124,3 +124,40 @@ rule get_common_RBP:
 rule RBP_pairs_on_flanking_1kb:
     input:
         "results/circRNAs_related/get_common_RBP/circRNAs.flanking_region.bed.intersect_RBP.coverage.common_RBP"
+
+
+rule get_RBP_dist_data:
+    input:
+        "results/circRNAs_related/calc_RBP_coverage/circRNAs.flanking_region.bed.intersect_RBP.coverage"
+    output:
+        "results/circRNAs_related/get_RBP_dist_data/circRNAs.flanking_region.bed.intersect_RBP.coverage.dist_data"
+    log:
+        "results/logs/get_RBP_dist_data/log"
+    conda:
+        "../envs/python3.yaml"
+    script:
+        "../scripts/get_RBP_dist_data.py"
+
+rule get_common_RBP_with_dist_data:
+    input:
+        "results/circRNAs_related/get_RBP_dist_data/circRNAs.flanking_region.bed.intersect_RBP.coverage.dist_data"
+    output:
+        "results/circRNAs_related/get_RBP_dist_data/circRNAs.flanking_region.bed.intersect_RBP.coverage.dist_data.common_RBP"
+    log:
+        "results/logs/get_common_RBP_with_dist_data/log"
+    conda:
+        "../envs/python3.yaml"
+    script:
+        "../scripts/get_common_RBP_with_dist_data.py"
+
+rule get_min_dist_RBP:
+    input:
+        "results/circRNAs_related/get_RBP_dist_data/circRNAs.flanking_region.bed.intersect_RBP.coverage.dist_data.common_RBP"
+    output:
+        "results/circRNAs_related/get_RBP_dist_data/circRNAs.flanking_region.bed.intersect_RBP.coverage.dist_data.common_RBP.min_dist_RBP"
+    log:
+        "results/logs/get_min_dist_RBP/log"
+    conda:
+        "../envs/python3.yaml"
+    script:
+        "../scripts/get_min_dist_RBP.py"
