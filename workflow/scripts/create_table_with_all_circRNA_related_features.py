@@ -104,6 +104,16 @@ cross_junc_G_quadruplex_5_df = pd.read_csv(
 )
 
 
+# RBP on flanking 1k regions: min_dist
+min_dist_RBP_df = pd.read_csv(
+    snakemake.input.RBP_pairs_with_min_dist,
+    sep='\t',
+    dtype='object',
+    names=['event_id', 'min_dist_of_flanking_RBPs', 'RBPs_with_min_dist']
+)
+
+
+
 # merge all features
 circ_df = append_all_features(
     circ_df,
@@ -114,6 +124,7 @@ circ_df = append_all_features(
     not_depleted_ratio_df,
     cross_junc_G_quadruplex_10_df,
     cross_junc_G_quadruplex_5_df,
+    min_dist_RBP_df,
 )
 
 # output

@@ -22,5 +22,5 @@ with open(snakemake.input[0]) as f_in, open(snakemake.output[0], 'w') as out:
     for circ_id, circ_gp in groupby(reader, key=itemgetter(0)):
         circ_gp = list(circ_gp)
         min_dist = min(int(data[2]) for data in circ_gp)
-        RBP_list = ','.join(map(itemgetter(1), circ_gp))
+        RBP_list = ','.join([data[1] for data in circ_gp if int(data[2]) == min_dist])
         print(circ_id, min_dist, RBP_list, sep='\t', file=out)

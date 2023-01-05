@@ -186,6 +186,15 @@ RBP_df = pd.read_csv(
 ]]
 
 
+# flanking regions: RBP pairs on flanking 1kb with min dist
+min_dist_RBP_df = pd.read_csv(
+    snakemake.input.RBP_pairs_with_min_dist,
+    sep='\t',
+    dtype='object',
+    names=['event_id', 'min_dist_of_flanking_RBPs', 'RBPs_with_min_dist']
+).set_index('event_id')
+
+
 
 # donor & acceptor: splicing scores
 splicing_scores_df = pd.read_csv(
@@ -371,6 +380,7 @@ merged_df = append_all_features(
     check_AS_df,
     RCS_df,
     RBP_df,
+    min_dist_RBP_df,
     splicing_scores_df,
     evidence_num_plus_df,
     evidences_df,
@@ -416,6 +426,8 @@ merged_df = merged_df[[
     '#RCS_across > 0',
     '#RCS_across - #RCS_within > 0',
     'has_common_RBPs_on_flanking_1k',
+    'min_dist_of_flanking_RBPs',
+    'RBPs_with_min_dist',
     'evidence_num_plus',
     'evidences_score',
     'CircR2diseaseV2(well_confirmed)',
