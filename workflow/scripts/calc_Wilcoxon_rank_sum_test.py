@@ -1,5 +1,8 @@
 import pandas as pd
+import numpy as np
+import math
 from scipy.stats import ranksums
+from itertools import product
 
 import logging
 
@@ -35,7 +38,9 @@ not_detected_results = [
         pairs[1].median(),
         ranksums(*pairs).pvalue,
         ranksums(*pairs, alternative='less').pvalue,
-        ranksums(*pairs, alternative='greater').pvalue
+        ranksums(*pairs, alternative='greater').pvalue,
+        ranksums(*pairs).statistic / math.sqrt(len(pairs[0]) + len(pairs[1])),
+        np.median([v1 - v2 for v1, v2 in product(*pairs)]),
     )
     for col, pairs in get_test_pairs(not_detected_df, detected_df)
 ]
@@ -48,7 +53,9 @@ not_detected_results_df = pd.DataFrame(
         'median(Not detected = 0)',
         'p_value(two-sided)(ranksums)',
         'p_value(less)(ranksums)',
-        'p_value(greater)(ranksums)'
+        'p_value(greater)(ranksums)',
+        'effect_size(two-sided)(ranksums)',
+        'differnce_in_location(ranksums)',
     ]
 )
 
@@ -60,7 +67,9 @@ not_depleted_results = [
         pairs[1].median(),
         ranksums(*pairs).pvalue,
         ranksums(*pairs, alternative='less').pvalue,
-        ranksums(*pairs, alternative='greater').pvalue
+        ranksums(*pairs, alternative='greater').pvalue,
+        ranksums(*pairs).statistic / math.sqrt(len(pairs[0]) + len(pairs[1])),
+        np.median([v1 - v2 for v1, v2 in product(*pairs)]),
     )
     for col, pairs in get_test_pairs(not_depleted_df, depleted_df)
 ]
@@ -73,7 +82,9 @@ not_depleted_results_df = pd.DataFrame(
         'median(Not depleted = 0)',
         'p_value(two-sided)(ranksums)',
         'p_value(less)(ranksums)',
-        'p_value(greater)(ranksums)'
+        'p_value(greater)(ranksums)',
+        'effect_size(two-sided)(ranksums)',
+        'differnce_in_location(ranksums)',
     ]
 )
 
