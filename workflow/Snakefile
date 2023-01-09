@@ -335,8 +335,23 @@ rule calc_Wilcoxon_rank_sum_test:
         "results/logs/calc_Wilcoxon_rank_sum_test/{dataset_id}/{species}/{tissue}/log"
     conda:
         "envs/python3.yaml"
+    params:
+        r_ranksum = "workflow/utils/r_ranksum.R"
     script:
         "scripts/calc_Wilcoxon_rank_sum_test.py"
+
+
+rule test_r_ranksum:
+    input:
+        "results/table_with_features_of_scoring_type/Datasets2/human/HeLa_1/test.txt"
+    output:
+        "results/test_r_ranksum/test.txt"
+    conda:
+        "envs/R.yaml"
+    shell:
+        "cat {input} | Rscript workflow/utils/r_ranksum.R"
+
+
 
 
 # ----- t test ----- #
