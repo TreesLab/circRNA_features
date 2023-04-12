@@ -76,6 +76,44 @@ check_ambiguous_df = pd.read_csv(
 ).rename({'circRNA': 'event_id'}, axis=1)
 
 
+# circRNA junction: G-quadruplex structure across circRNA junction
+cross_junc_G_quadruplex_10_df = pd.read_csv(
+    snakemake.input.cross_junc_G_quadruplex[0],
+    sep='\t',
+    dtype='object',
+    usecols=[0, 7]
+).rename(
+    {
+        'circ_id': 'event_id',
+        'GS': 'G score(d=10)'
+    },
+    axis=1
+)
+
+cross_junc_G_quadruplex_5_df = pd.read_csv(
+    snakemake.input.cross_junc_G_quadruplex[1],
+    sep='\t',
+    dtype='object',
+    usecols=[0, 7]
+).rename(
+    {
+        'circ_id': 'event_id',
+        'GS': 'G score(d=5)'
+    },
+    axis=1
+)
+
+
+# RBP on flanking 1k regions: min_dist
+min_dist_RBP_df = pd.read_csv(
+    snakemake.input.RBP_pairs_with_min_dist,
+    sep='\t',
+    dtype='object',
+    names=['event_id', 'min_dist_of_flanking_RBPs', 'RBPs_with_min_dist']
+)
+
+
+
 # merge all features
 circ_df = append_all_features(
     circ_df,
@@ -84,6 +122,9 @@ circ_df = append_all_features(
     check_annotated_df,
     check_ambiguous_df,
     not_depleted_ratio_df,
+    cross_junc_G_quadruplex_10_df,
+    cross_junc_G_quadruplex_5_df,
+    min_dist_RBP_df,
 )
 
 # output

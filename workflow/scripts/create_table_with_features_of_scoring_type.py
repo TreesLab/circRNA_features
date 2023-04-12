@@ -106,6 +106,10 @@ flanking_regions_df_2 = df[[
     'min_p_value_of_RBP_binding_sites_across_junction_high_cons'
 ]].fillna('0').astype(float)
 
+flanking_regions_df_3 = df[[
+    'min_dist_of_flanking_RBPs'
+]]
+
 
 # splicing scores
 
@@ -133,6 +137,20 @@ conservation_scores_df = df[[
 ]].fillna('0').astype(float)
 
 
+# circRNAs databases: num_db
+
+num_db_df = df[[
+    'num_db'
+]]
+
+
+# G score
+G_score_df = df[[
+    'G score(d=10)',
+    'G score(d=5)'
+]]
+
+
 scoring_table_df = pd.concat(
     [
         base_df,
@@ -144,8 +162,11 @@ scoring_table_df = pd.concat(
         evidence_num_plus_df,
         flanking_regions_df,
         flanking_regions_df_2,
+        flanking_regions_df_3,
         splicing_scores_df,
-        conservation_scores_df
+        conservation_scores_df,
+        num_db_df,
+        G_score_df
     ],
     axis=1
 )

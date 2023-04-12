@@ -2,4 +2,10 @@
 results/*
 *DS_Store
 *.pyc
-
+*venv*
+*.tsv
+resources/*
+resources.tar.gz
+resources_example/datasets/*
+resources_example/references/*
+images/*

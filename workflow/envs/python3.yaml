@@ -12,3 +12,4 @@ dependencies:
     - statsmodels==0.13.2
     - seaborn==0.11.2
     - cairosvg==2.5.2
+    - matplotlib==3.6.2

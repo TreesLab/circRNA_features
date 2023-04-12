@@ -61,12 +61,19 @@ rule create_table_with_all_features:
         transCirc = "results/circRNAs_related/transCirc_table/transCirc_table.tsv",
         RCS_pairs = "results/circRNAs_related/get_RCS_summary/RCS.filtered.summary.tsv",
         RBP_pairs = "results/circRNAs_related/get_common_RBP/circRNAs.flanking_region.bed.intersect_RBP.coverage.common_RBP",
+        RBP_pairs_with_min_dist = "results/circRNAs_related/get_RBP_dist_data/circRNAs.flanking_region.bed.intersect_RBP.coverage.dist_data.common_RBP.min_dist_RBP",
         cross_junc_miRNAs = "results/circRNAs_related/predict_miRNA_binding_sites_across_junction/pseudo_reference.50.fa.miranda_results.crossing_junction_miRNAs",
         cross_junc_RBPs = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.crossing_junction_RBPs.count",
         cross_junc_RBPs_high_cons = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.high_cons.crossing_junction_RBPs.count",
+        cross_junc_G_quadruplex = [
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_10.txt",
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_5.txt",
+        ],
         splicing_scores = "results/circRNAs_related/table_with_splicing_scores/circRNAs.MaxEntScan_scores.tsv",
         conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
         circFLseq = config["circFLseq"],
+        circRNAs_db = config["circRNAs_db"],
+        U2_U12_feature = config["U2_U12_feature"]
     output:
         "results/table_with_all_features/{dataset_id}/{species}/{tissue}/circRNAs.with_all_features.tsv"
     log:
@@ -153,9 +160,14 @@ rule create_table_with_all_circRNA_related_features:
         transCirc = "results/circRNAs_related/transCirc_table/transCirc_table.tsv",
         RCS_pairs = "results/circRNAs_related/get_RCS_summary/RCS.filtered.summary.tsv",
         RBP_pairs = "results/circRNAs_related/get_common_RBP/circRNAs.flanking_region.bed.intersect_RBP.coverage.common_RBP",
+        RBP_pairs_with_min_dist = "results/circRNAs_related/get_RBP_dist_data/circRNAs.flanking_region.bed.intersect_RBP.coverage.dist_data.common_RBP.min_dist_RBP",
         cross_junc_miRNAs = "results/circRNAs_related/predict_miRNA_binding_sites_across_junction/pseudo_reference.50.fa.miranda_results.crossing_junction_miRNAs",
         cross_junc_RBPs = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.crossing_junction_RBPs.count",
         cross_junc_RBPs_high_cons = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.high_cons.crossing_junction_RBPs.count",
+        cross_junc_G_quadruplex = [
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_10.txt",
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_5.txt",
+        ],
         splicing_scores = "results/circRNAs_related/table_with_splicing_scores/circRNAs.MaxEntScan_scores.tsv",
         conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
         circFLseq = config["circFLseq"],
@@ -324,8 +336,33 @@ rule calc_Wilcoxon_rank_sum_test:
         "results/logs/calc_Wilcoxon_rank_sum_test/{dataset_id}/{species}/{tissue}/log"
     conda:
         "envs/python3.yaml"
+    params:
+        r_ranksum = "workflow/utils/r_ranksum.R"
     script:
         "scripts/calc_Wilcoxon_rank_sum_test.py"
+
+rule calc_all_Wilcoxon_rank_sum_test:
+    input:
+        expand(
+            [
+                "results/calc_Wilcoxon_rank_sum_test/{}/{}/{}/circRNAs.ranksums.{{type}}.tsv".format(dataset_id, species, tissue)
+                for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+            ],
+            type=['not_detected', 'not_depleted']
+        )
+
+
+rule test_r_ranksum:
+    input:
+        "results/table_with_features_of_scoring_type/Datasets2/human/HeLa_1/test.txt"
+    output:
+        "results/test_r_ranksum/test.txt"
+    conda:
+        "envs/R.yaml"
+    shell:
+        "cat {input} | Rscript workflow/utils/r_ranksum.R"
+
+
 
 
 # ----- t test ----- #
@@ -508,6 +545,37 @@ rule plotting_data_boxplot:
         "scripts/plotting_data_boxplot.py"
 
 
+rule plotting_data_boxplot_2:
+    input:
+        [
+            "results/table_with_features_of_scoring_type/{}/{}/{}/circRNAs.with_features_of_scoring_type.tsv".format(dataset_id, species, tissue)
+            for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+        ]
+    output:
+        directory("results/plotting_data/boxplot_2/")
+    log:
+        "results/logs/plotting_data_boxplot_2/log"
+    conda:
+        "envs/python3.yaml"
+    params:
+        groups = ALL_SAMPLE_GROUPS,
+        sample_id_mapper = SAMPLE_ID_MAPPER
+    script:
+        "scripts/plotting_data_boxplot_2.py"
+
+
+rule plotting_data_boxplot_3:
+    input:
+        "results/all_test_results_of_scoring_features/circRNAs.all_test_results_of_scoring_features.BH_correction.tsv"
+    output:
+        directory("results/plotting_data/boxplot_3/")
+    log:
+        "results/logs/plotting_data_boxplot_3/log"
+    conda:
+        "envs/python3.yaml"
+    script:
+        "scripts/plotting_data_boxplot_3.py"
+
 
 # ----------------------------------------------------------------------------------- #
 # Final outputs
@@ -549,12 +617,19 @@ rule create_table_with_final_features_details:
         transCirc = "results/circRNAs_related/transCirc_table/transCirc_table.tsv",
         RCS_pairs = "results/circRNAs_related/get_RCS_summary/RCS.filtered.summary.tsv",
         RBP_pairs = "results/circRNAs_related/get_common_RBP/circRNAs.flanking_region.bed.intersect_RBP.coverage.common_RBP",
+        RBP_pairs_with_min_dist = "results/circRNAs_related/get_RBP_dist_data/circRNAs.flanking_region.bed.intersect_RBP.coverage.dist_data.common_RBP.min_dist_RBP",
         cross_junc_miRNAs = "results/circRNAs_related/predict_miRNA_binding_sites_across_junction/pseudo_reference.50.fa.miranda_results.crossing_junction_miRNAs",
         cross_junc_RBPs = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.crossing_junction_RBPs.count",
         cross_junc_RBPs_high_cons = "results/circRNAs_related/predict_RBP_binding_sites_across_junction/pseudo_reference.50.fa.RBPmap_results.high_cons.crossing_junction_RBPs.count",
+        cross_junc_G_quadruplex = [
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_10.txt",
+            "results/circRNAs_related/predict_G_quadruplex_structure_across_junction/QGRS_results.cross_junction_5.txt",
+        ],
         splicing_scores = "results/circRNAs_related/table_with_splicing_scores/circRNAs.MaxEntScan_scores.tsv",
         conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
         circFLseq = config["circFLseq"],
+        circRNAs_db = config["circRNAs_db"],
+        curated_circRNAs_db = config["curated_circRNAs_db"],
         sample_features = [
             "results/create_table_with_sample_features_detail/{}/{}/{}/circRNAs.with_features.remove_AA.totalRNA_2.tsv".format(dataset_id, species, tissue)
             for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
