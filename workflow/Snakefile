@@ -73,6 +73,7 @@ rule create_table_with_all_features:
         conservation_scores = "results/circRNAs_related/table_with_conservation_scores/circRNAs.conservation_scores.tsv",
         circFLseq = config["circFLseq"],
         circRNAs_db = config["circRNAs_db"],
+        U2_U12_feature = config["U2_U12_feature"]
     output:
         "results/table_with_all_features/{dataset_id}/{species}/{tissue}/circRNAs.with_all_features.tsv"
     log:
@@ -340,6 +341,16 @@ rule calc_Wilcoxon_rank_sum_test:
     script:
         "scripts/calc_Wilcoxon_rank_sum_test.py"
 
+rule calc_all_Wilcoxon_rank_sum_test:
+    input:
+        expand(
+            [
+                "results/calc_Wilcoxon_rank_sum_test/{}/{}/{}/circRNAs.ranksums.{{type}}.tsv".format(dataset_id, species, tissue)
+                for dataset_id, species, tissue in ALL_SAMPLE_GROUPS
+            ],
+            type=['not_detected', 'not_depleted']
+        )
+
 
 rule test_r_ranksum:
     input:
@@ -551,6 +562,19 @@ rule plotting_data_boxplot_2:
         sample_id_mapper = SAMPLE_ID_MAPPER
     script:
         "scripts/plotting_data_boxplot_2.py"
+
+
+rule plotting_data_boxplot_3:
+    input:
+        "results/all_test_results_of_scoring_features/circRNAs.all_test_results_of_scoring_features.BH_correction.tsv"
+    output:
+        directory("results/plotting_data/boxplot_3/")
+    log:
+        "results/logs/plotting_data_boxplot_3/log"
+    conda:
+        "envs/python3.yaml"
+    script:
+        "scripts/plotting_data_boxplot_3.py"
 
 
 # ----------------------------------------------------------------------------------- #

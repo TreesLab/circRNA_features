@@ -68,6 +68,28 @@ RCS_df = df[[
     axis=1
 )
 
+# has common_RBP/RCS_across
+RBP_RCS_df = df[[
+    '#RCS_across_flanking_introns',
+    'has_common_RBPs_on_flanking_1k'
+]].fillna('0').astype(int).assign(
+    **{
+        '#RCS_across > 0': lambda df2: (df2['#RCS_across_flanking_introns'] > 0).apply(int),
+    }
+).assign(
+    **{
+        'has_common RBP/RCS_across  (Yes: 1; No: 0)': lambda df2: ((df2['#RCS_across > 0'] + df2['has_common_RBPs_on_flanking_1k']) > 0).apply(int)
+    }
+).drop(
+    [
+        '#RCS_across_flanking_introns',
+        'has_common_RBPs_on_flanking_1k',
+        '#RCS_across > 0'
+    ],
+    axis=1
+)
+
+
 # circAtlas table: Type length(mature)
 logging.info('generating binary feature of "circAtlas table: Type length"')
 
@@ -180,6 +202,15 @@ has_G_quadruplex_5_df = df[[
 )
 
 
+# U2_U12_feature
+U2_U12_df = df[[
+    'U2/U12-donor',
+    'U2/U12-acceptor',
+    'both_donor_acceptor_sites_with U2/U12 (Yes: 1; No: 0)'
+]]
+
+
+
 logging.info('merging all feature tables')
 
 bool_table_df = pd.concat(
@@ -188,13 +219,15 @@ bool_table_df = pd.concat(
         annotated_boundary_df,
         AS_check_df,
         RCS_df,
+        RBP_RCS_df,
         type_length_df,
         MCS_df,
         algorithms_df,
         evidence_num_df,
         the_others_df,
         has_G_quadruplex_10_df,
-        has_G_quadruplex_5_df
+        has_G_quadruplex_5_df,
+        U2_U12_df
     ],
     axis=1
 )

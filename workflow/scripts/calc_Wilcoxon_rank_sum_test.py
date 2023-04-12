@@ -2,6 +2,9 @@ import pandas as pd
 import numpy as np
 import math
 import subprocess as sp
+import os
+import os.path
+import hashlib
 from scipy.stats import ranksums
 from itertools import product
 
@@ -32,10 +35,29 @@ logging.debug(next(get_test_pairs(not_detected_df, detected_df)))
 logging.debug(next(get_test_pairs(not_depleted_df, depleted_df)))
 
 
+def get_env_hash_name(conda_env_dir, env_yaml_path):
+    md5hash = hashlib.md5()
+    md5hash.update(conda_env_dir.encode())
+    with open(env_yaml_path, 'rb') as f_in:
+        md5hash.update(f_in.read())
+
+    return md5hash.hexdigest()
+
+
+conda_env_dir = os.path.join(os.getcwd(), '.snakemake/conda')
+R_env_yaml_path = os.path.join(os.getcwd(), 'workflow/envs/R.yaml')
+R_conda_env_path = os.path.join(conda_env_dir, get_env_hash_name(conda_env_dir, R_env_yaml_path))
+
+current_env = os.environ.copy()
+current_env['PATH'] = f"{R_conda_env_path}/bin/:{current_env['PATH']}"
+# print(current_env['PATH'])
+
 def r_ranksum(df1, df2):
     data_1 = ','.join(df1.astype(str))
     data_2 = ','.join(df2.astype(str))
     data = f'{data_1}\n{data_2}\n'
+
+    # sp.run(['which', 'Rscript'], env=current_env)
 
     with sp.Popen(
         [
@@ -44,14 +66,15 @@ def r_ranksum(df1, df2):
         ],
         stdin=sp.PIPE,
         stdout=sp.PIPE,
-        encoding='utf-8'
+        encoding='utf-8',
+        env=current_env
     ) as p:
 
         res, err_msg = p.communicate(data)
 
-        pvalue, conf_int_low, conf_int_high, differnce_in_location = res.split()
+        pvalue, conf_int_low, conf_int_high, differnce_in_location, effect_size, eff_conf_int_low, eff_conf_int_high = res.split()
 
-        return pvalue, conf_int_low, conf_int_high, differnce_in_location
+        return pvalue, conf_int_low, conf_int_high, differnce_in_location, effect_size, eff_conf_int_low, eff_conf_int_high
 
 
 not_detected_results = [
@@ -84,6 +107,9 @@ not_detected_results_df = pd.DataFrame(
         'conf_int_low(two-sided)(R_ranksums)',
         'conf_int_high(two-sided)(R_ranksums)',
         'differnce_in_location(R_ranksums)',
+        'effect_size(two-sided)(R_ranksums)',
+        'conf_int_low(effect_size)(two-sided)(R_ranksums)',
+        'conf_int_high(effect_size)(two-sided)(R_ranksums)',
     ]
 )
 
@@ -118,6 +144,9 @@ not_depleted_results_df = pd.DataFrame(
         'conf_int_low(two-sided)(R_ranksums)',
         'conf_int_high(two-sided)(R_ranksums)',
         'differnce_in_location(R_ranksums)',
+        'effect_size(two-sided)(R_ranksums)',
+        'conf_int_low(effect_size)(two-sided)(R_ranksums)',
+        'conf_int_high(effect_size)(two-sided)(R_ranksums)',
     ]
 )
 

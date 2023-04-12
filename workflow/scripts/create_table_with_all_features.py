@@ -2,6 +2,7 @@ import pandas as pd
 
 
 circ_df = pd.read_csv(snakemake.input[0], sep='\t', dtype='object')
+event_id_df = circ_df[['event_id']]
 
 
 def append_all_features(circ_df, *feature_dfs):
@@ -102,6 +103,18 @@ RBP_df = pd.read_csv(
     has_common_RBPs_on_flanking_1k=lambda df: (df['#RBP_pairs_on_flanking_1k'].apply(int) > 0).apply(int)
 ).astype('object')
 
+# flanking regions: RBP pairs on flanking 1kb with min dist
+min_dist_RBP_df = pd.read_csv(
+    snakemake.input.RBP_pairs_with_min_dist,
+    sep='\t',
+    dtype='object',
+    names=['event_id', 'min_dist_of_flanking_RBPs'],
+    usecols=[0, 1]
+).merge(event_id_df, on='event_id', how='right').set_index(
+    'event_id'
+).fillna('100000')
+
+
 
 # circRNA junction: miRNA-binding sites across the circRNA junction
 cross_junc_miRNAs_df = pd.read_csv(
@@ -199,6 +212,20 @@ db_df = pd.read_csv(
     dtype='object'
 )
 
+# U2_U12_feature
+U2_U12_df = pd.read_csv(
+    snakemake.input.U2_U12_feature,
+    sep='\t',
+    dtype='object',
+    usecols=[0, 5, 6, 7]
+).rename(
+    {
+        'circRNA_id': 'event_id'
+    },
+    axis=1
+)
+
+
 # merge all features
 circ_df = append_all_features(
     circ_df,
@@ -209,6 +236,7 @@ circ_df = append_all_features(
     transCirc_df,
     RCS_df,
     RBP_df,
+    min_dist_RBP_df,
     cross_junc_miRNAs_df,
     cross_junc_RBPs_df,
     cross_junc_RBPs_high_cons_df,
@@ -217,7 +245,8 @@ circ_df = append_all_features(
     splicing_scores_df,
     conservation_scores_df,
     circFLseq_df,
-    db_df
+    db_df,
+    U2_U12_df
 ).fillna('0')
 
 # output
